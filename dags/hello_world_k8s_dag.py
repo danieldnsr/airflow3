@@ -11,7 +11,7 @@ Fecha: Octubre 2025
 
 from datetime import datetime, timedelta
 from airflow import DAG
-from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import KubernetesPodOperator
+from airflow.providers.cncf.kubernetes.operators.pod import KubernetesPodOperator
 from kubernetes.client import models as k8s
 
 # Configuración por defecto para el DAG
