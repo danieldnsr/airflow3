@@ -86,18 +86,16 @@ triggerer:
       memory: 256Mi
 
 # DAGs configuration - GitSync (MÉTODO PROFESIONAL)
-# Para usar tu propio repo, cambia la URL por tu repositorio de GitHub/GitLab
+# Usando tu repositorio de GitHub con tus DAGs personalizados
 dags:
   gitSync:
     enabled: true
-    # CAMBIAR esta URL por tu repositorio real cuando lo tengas
-    repo: https://github.com/apache/airflow.git
+    repo: https://github.com/danieldnsr/airflow3.git
     branch: main
     rev: HEAD
     depth: 1
     maxFailures: 0
-    # Usar el subdirectorio de ejemplos por ahora
-    subPath: "airflow/example_dags"
+    subPath: "dags"
     wait: 60
     containerName: git-sync
     uid: 65533
