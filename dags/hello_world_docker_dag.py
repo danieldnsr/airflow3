@@ -40,7 +40,7 @@ hello_task = DockerOperator(
     image='alpine:latest',
     command='echo "¡Hola Mundo desde Docker! 🐳"',
     dag=dag,
-    auto_remove=True,
+    auto_remove='success',
     docker_url='unix://var/run/docker.sock',
     network_mode='bridge',
 )
@@ -51,7 +51,7 @@ system_info_task = DockerOperator(
     image='alpine:latest',
     command='sh -c "echo \'=== Información del Sistema ===\' && uname -a && echo \'=== Fecha y Hora ===\' && date && echo \'=== Contenido del directorio ===\' && ls -la /"',
     dag=dag,
-    auto_remove=True,
+    auto_remove='success',
     docker_url='unix://var/run/docker.sock',
     network_mode='bridge',
 )
@@ -62,7 +62,7 @@ python_task = DockerOperator(
     image='python:3.9-alpine',
     command='python -c "print(\'¡Hola desde Python en Docker! 🐍\'); import sys; print(f\'Versión de Python: {sys.version}\')"',
     dag=dag,
-    auto_remove=True,
+    auto_remove='success',
     docker_url='unix://var/run/docker.sock',
     network_mode='bridge',
 )
