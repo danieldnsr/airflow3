@@ -30,7 +30,7 @@ dag = DAG(
     'hello_world_kubernetes',
     default_args=default_args,
     description='DAG de prueba con Kubernetes que ejecuta Hola Mundo en pods',
-    schedule_interval=None,  # Ejecutar manualmente
+    schedule=None,  # Ejecutar manualmente (Airflow 3.x syntax)
     catchup=False,
     tags=['kubernetes', 'k8s', 'hola-mundo', 'prueba'],
 )

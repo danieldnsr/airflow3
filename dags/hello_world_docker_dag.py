@@ -29,7 +29,7 @@ dag = DAG(
     'hello_world_docker',
     default_args=default_args,
     description='DAG de prueba con Docker que ejecuta Hola Mundo',
-    schedule_interval=None,  # Ejecutar manualmente
+    schedule=None,  # Ejecutar manualmente (Airflow 3.x syntax)
     catchup=False,
     tags=['docker', 'hola-mundo', 'prueba'],
 )
