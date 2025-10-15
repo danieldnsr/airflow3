@@ -36,12 +36,6 @@ redis:
 # ========================
 executor: "CeleryExecutor"
 
-images:
-  airflow:
-    repository: apache/airflow
-    tag: "3.0.2"
-    pullPolicy: IfNotPresent
-
 # Generate with: python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
 fernetKey: "n7uEZy1JQaHQZmtgty1jOg2Ywr3FZi2MyfMUjjD-C40="
 
@@ -91,53 +85,26 @@ triggerer:
       cpu: 200m
       memory: 256Mi
 
-# DAGs configuration - Opción 1: Desarrollo local con init container
+# DAGs configuration - GitSync (MÉTODO PROFESIONAL)
+# Para usar tu propio repo, cambia la URL por tu repositorio de GitHub/GitLab
 dags:
   gitSync:
-    enabled: false
-  persistence:
     enabled: true
-    size: 1Gi
-    accessMode: ReadWriteOnce
-
-# Configuración para desarrollo: copiar DAGs desde init container
-extraInitContainers:
-  - name: git-sync-init
-    image: alpine/git:latest
-    command:
-      - /bin/sh
-      - -c
-      - |
-        echo "Copiando DAGs desde repositorio local..."
-        mkdir -p /git/dags
-        # En producción aquí irías un git clone
-        # Por ahora creamos los DAGs básicos
-        cat > /git/dags/hello_world_simple.py << 'EOF'
-        from datetime import datetime
-        from airflow import DAG
-        from airflow.operators.bash import BashOperator
-
-        dag = DAG(
-            'hello_world_simple',
-            description='Hello World DAG simple',  
-            schedule_interval=None,
-            start_date=datetime(2025, 10, 14),
-            catchup=False,
-            tags=['hello-world']
-        )
-
-        hello_task = BashOperator(
-            task_id='say_hello',
-            bash_command='echo "¡Hola Mundo desde Airflow en Kubernetes! 🚀"',
-            dag=dag
-        )
-        EOF
-        
-        echo "DAGs creados en /git/dags"
-        ls -la /git/dags/
-    volumeMounts:
-      - name: dags-data
-        mountPath: /git
+    # CAMBIAR esta URL por tu repositorio real cuando lo tengas
+    repo: https://github.com/apache/airflow.git
+    branch: main
+    rev: HEAD
+    depth: 1
+    maxFailures: 0
+    # Usar el subdirectorio de ejemplos por ahora
+    subPath: "airflow/example_dags"
+    wait: 60
+    containerName: git-sync
+    uid: 65533
+    
+  # Deshabilitar persistencia ya que gitSync maneja el almacenamiento
+  persistence:
+    enabled: false
 
 # Logs
 logs:
