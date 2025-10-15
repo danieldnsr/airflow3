@@ -1,0 +1,93 @@
+apiVersion: v1
+data:
+  hello_world_docker_dag.py: "\"\"\"\nDAG de prueba - Hola Mundo con DockerOperator\n===============================================\n\nEste
+    DAG ejecuta un contenedor Docker simple que imprime \"Hola Mundo\" \npara probar
+    la integración de Airflow con Docker en Kubernetes.\n\nAutor: Daniel\nFecha: Octubre
+    2025\n\"\"\"\n\nfrom datetime import datetime, timedelta\nfrom airflow import
+    DAG\nfrom airflow.providers.docker.operators.docker import DockerOperator\n\n#
+    Configuración por defecto para el DAG\ndefault_args = {\n    'owner': 'daniel',\n
+    \   'depends_on_past': False,\n    'start_date': datetime(2025, 10, 14),\n    'email_on_failure':
+    False,\n    'email_on_retry': False,\n    'retries': 1,\n    'retry_delay': timedelta(minutes=5),\n}\n\n#
+    Definición del DAG\ndag = DAG(\n    'hello_world_docker',\n    default_args=default_args,\n
+    \   description='DAG de prueba con Docker que ejecuta Hola Mundo',\n    schedule_interval=None,
+    \ # Ejecutar manualmente\n    catchup=False,\n    tags=['docker', 'hola-mundo',
+    'prueba'],\n)\n\n# Task 1: Hola Mundo básico\nhello_task = DockerOperator(\n    task_id='docker_hola_mundo',\n
+    \   image='alpine:latest',\n    command='echo \"¡Hola Mundo desde Docker! \U0001F433\"',\n
+    \   dag=dag,\n    auto_remove=True,\n    docker_url='unix://var/run/docker.sock',\n
+    \   network_mode='bridge',\n)\n\n# Task 2: Información del sistema\nsystem_info_task
+    = DockerOperator(\n    task_id='docker_system_info',\n    image='alpine:latest',\n
+    \   command='sh -c \"echo \\'=== Información del Sistema ===\\' && uname -a &&
+    echo \\'=== Fecha y Hora ===\\' && date && echo \\'=== Contenido del directorio
+    ===\\' && ls -la /\"',\n    dag=dag,\n    auto_remove=True,\n    docker_url='unix://var/run/docker.sock',\n
+    \   network_mode='bridge',\n)\n\n# Task 3: Prueba con Python\npython_task = DockerOperator(\n
+    \   task_id='docker_python_hello',\n    image='python:3.9-alpine',\n    command='python
+    -c \"print(\\'¡Hola desde Python en Docker! \U0001F40D\\'); import sys; print(f\\'Versión
+    de Python: {sys.version}\\')\"',\n    dag=dag,\n    auto_remove=True,\n    docker_url='unix://var/run/docker.sock',\n
+    \   network_mode='bridge',\n)\n\n# Definir dependencias: las tareas se ejecutan
+    en secuencia\nhello_task >> system_info_task >> python_task"
+  hello_world_k8s_dag.py: "\"\"\"\nDAG de prueba - Hola Mundo con KubernetesPodOperator\n===================================================\n\nEste
+    DAG ejecuta pods de Kubernetes que corren contenedores Docker\npara probar la
+    integración completa de Airflow + Kubernetes + Docker.\n\nAutor: Daniel\nFecha:
+    Octubre 2025\n\"\"\"\n\nfrom datetime import datetime, timedelta\nfrom airflow
+    import DAG\nfrom airflow.providers.cncf.kubernetes.operators.kubernetes_pod import
+    KubernetesPodOperator\nfrom kubernetes.client import models as k8s\n\n# Configuración
+    por defecto para el DAG\ndefault_args = {\n    'owner': 'daniel',\n    'depends_on_past':
+    False,\n    'start_date': datetime(2025, 10, 14),\n    'email_on_failure': False,\n
+    \   'email_on_retry': False,\n    'retries': 2,\n    'retry_delay': timedelta(minutes=3),\n}\n\n#
+    Definición del DAG\ndag = DAG(\n    'hello_world_kubernetes',\n    default_args=default_args,\n
+    \   description='DAG de prueba con Kubernetes que ejecuta Hola Mundo en pods',\n
+    \   schedule_interval=None,  # Ejecutar manualmente\n    catchup=False,\n    tags=['kubernetes',
+    'k8s', 'hola-mundo', 'prueba'],\n)\n\n# Task 1: Hola Mundo básico en Kubernetes\nk8s_hello_task
+    = KubernetesPodOperator(\n    task_id='k8s_hola_mundo',\n    name='airflow-hello-mundo-pod',\n
+    \   namespace='default',\n    image='alpine:latest',\n    cmds=['sh', '-c'],\n
+    \   arguments=['echo \"¡Hola Mundo desde Kubernetes! ⚙️\U0001F433\" && echo \"Pod
+    ejecutándose en: $(hostname)\" && echo \"Fecha: $(date)\"'],\n    dag=dag,\n    is_delete_operator_pod=True,\n
+    \   get_logs=True,\n    startup_timeout_seconds=120,\n)\n\n# Task 2: Información
+    detallada del cluster\nk8s_cluster_info_task = KubernetesPodOperator(\n    task_id='k8s_cluster_info',\n
+    \   name='airflow-cluster-info-pod',\n    namespace='default',\n    image='alpine:latest',\n
+    \   cmds=['sh', '-c'],\n    arguments=[\n        'echo \"=== INFORMACIÓN DEL CLUSTER
+    ===\" && '\n        'echo \"Hostname del pod: $(hostname)\" && '\n        'echo
+    \"Namespace: ${KUBERNETES_NAMESPACE:-default}\" && '\n        'echo \"Usuario
+    actual: $(whoami)\" && '\n        'echo \"Sistema operativo: $(uname -a)\" &&
+    '\n        'echo \"Memoria disponible:\" && cat /proc/meminfo | grep MemTotal
+    && '\n        'echo \"CPU info:\" && cat /proc/cpuinfo | grep \"model name\" |
+    head -1 && '\n        'echo \"Variables de entorno de Kubernetes:\" && env | grep
+    KUBERNETES | head -5'\n    ],\n    dag=dag,\n    is_delete_operator_pod=True,\n
+    \   get_logs=True,\n    startup_timeout_seconds=120,\n    # Configuración de recursos\n
+    \   container_resources=k8s.V1ResourceRequirements(\n        requests={'cpu':
+    '100m', 'memory': '128Mi'},\n        limits={'cpu': '500m', 'memory': '256Mi'}\n
+    \   ),\n)\n\n# Task 3: Prueba con Ubuntu y herramientas adicionales\nk8s_ubuntu_task
+    = KubernetesPodOperator(\n    task_id='k8s_ubuntu_tools',\n    name='airflow-ubuntu-tools-pod',\n
+    \   namespace='default',\n    image='ubuntu:20.04',\n    cmds=['bash', '-c'],\n
+    \   arguments=[\n        'echo \"¡Hola desde Ubuntu en Kubernetes! \U0001F427\"
+    && '\n        'echo \"Actualizando paquetes...\" && '\n        'apt-get update
+    -qq && apt-get install -y curl wget -qq && '\n        'echo \"Probando conectividad:\"
+    && '\n        'curl -s -I https://www.google.com | head -1 && '\n        'echo
+    \"Información del contenedor:\" && '\n        'cat /etc/os-release | grep PRETTY_NAME
+    && '\n        'echo \"Directorio actual: $(pwd)\" && '\n        'echo \"Archivos
+    en /:\" && ls -la / | head -10'\n    ],\n    dag=dag,\n    is_delete_operator_pod=True,\n
+    \   get_logs=True,\n    startup_timeout_seconds=180,  # Más tiempo para Ubuntu\n
+    \   container_resources=k8s.V1ResourceRequirements(\n        requests={'cpu':
+    '200m', 'memory': '256Mi'},\n        limits={'cpu': '500m', 'memory': '512Mi'}\n
+    \   ),\n)\n\n# Task 4: Prueba con Python en Kubernetes\nk8s_python_task = KubernetesPodOperator(\n
+    \   task_id='k8s_python_advanced',\n    name='airflow-python-advanced-pod',\n
+    \   namespace='default',\n    image='python:3.9-slim',\n    cmds=['python', '-c'],\n
+    \   arguments=['''\nimport sys\nimport os\nimport platform\nimport datetime\n\nprint(\"\U0001F40D
+    ¡Hola Mundo desde Python en Kubernetes!\")\nprint(f\"Versión de Python: {sys.version}\")\nprint(f\"Plataforma:
+    {platform.platform()}\")\nprint(f\"Arquitectura: {platform.architecture()}\")\nprint(f\"Nombre
+    del host: {platform.node()}\")\nprint(f\"Fecha y hora: {datetime.datetime.now()}\")\nprint(f\"Variables
+    de entorno de Kubernetes:\")\nfor key, value in os.environ.items():\n    if 'KUBERNETES'
+    in key:\n        print(f\"  {key}: {value}\")\n\n# Pequeña demostración de procesamiento\nprint(\"\\\\n\U0001F9EE
+    Pequeña demostración de cálculo:\")\nnumeros = list(range(1, 11))\nsuma = sum(numeros)\nprint(f\"Suma
+    de números del 1 al 10: {suma}\")\nprint(f\"Números pares: {[n for n in numeros
+    if n % 2 == 0]}\")\nprint(\"\\\\n✅ Prueba completada exitosamente!\")\n    '''],\n
+    \   dag=dag,\n    is_delete_operator_pod=True,\n    get_logs=True,\n    startup_timeout_seconds=120,\n
+    \   container_resources=k8s.V1ResourceRequirements(\n        requests={'cpu':
+    '100m', 'memory': '128Mi'},\n        limits={'cpu': '300m', 'memory': '256Mi'}\n
+    \   ),\n)\n\n# Definir dependencias: ejecutar en paralelo los primeros dos, luego
+    los otros dos\n[k8s_hello_task, k8s_cluster_info_task] >> k8s_ubuntu_task >> k8s_python_task"
+kind: ConfigMap
+metadata:
+  creationTimestamp: null
+  name: airflow-dags
+  namespace: airflow
