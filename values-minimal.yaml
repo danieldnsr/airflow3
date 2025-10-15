@@ -101,13 +101,25 @@ dags:
     depth: 1
     maxFailures: 0
     subPath: "dags"
-    wait: 60
+    wait: 30  # Sincronizar cada 30 segundos para desarrollo más rápido
     containerName: git-sync
     uid: 65533
     
   # Deshabilitar persistencia ya que gitSync maneja el almacenamiento
   persistence:
     enabled: false
+
+# Montar Docker socket para DockerOperator
+extraVolumes:
+  - name: docker-socket
+    hostPath:
+      path: /var/run/docker.sock
+      type: Socket
+
+extraVolumeMounts:
+  - name: docker-socket
+    mountPath: /var/run/docker.sock
+    readOnly: false
 
 # Logs
 logs:
